@@ -1,23 +1,9 @@
-import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsOptional, IsString } from "class-validator";
-import { ResourceType } from "../resource.namespace";
+import { IsBoolean, IsString } from "class-validator";
 
 export class UpdateResourceDto {
-  @IsOptional()
   @IsString()
-  name?: string;
+  name: string;
 
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  parentId?: number;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  ownerId?: number;
-
-  @IsOptional()
-  @IsEnum(ResourceType)
-  type?: ResourceType;
+  @IsBoolean()
+  shareable: boolean;
 }

@@ -47,13 +47,16 @@ export class FileController {
     @Body() body,
     @RequestUserSession() session: any
   ) {
+    const { parentId, shareable } = JSON.parse(body.meta);
+    console.log("meta ====> ", parentId, shareable);
     try {
       const savedFileData = this.resourceService.create(
         new CreateResourceDto({
-          parentId: JSON.parse(body.parentId),
+          parentId,
           ownerId: session.uid,
           name: file.filename,
           type: ResourceType.FILE,
+          shareable,
         })
       );
       return savedFileData;

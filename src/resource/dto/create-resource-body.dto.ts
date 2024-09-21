@@ -13,4 +13,7 @@ export class CreateResourceBodyDto {
 
   @IsEnum(ResourceType)
   type: ResourceType;
+
+  @IsOptional()
+  shareable: boolean;
 }

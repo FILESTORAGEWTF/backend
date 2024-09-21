@@ -24,9 +24,8 @@ export class ResourceService {
     return `This action returns a #${id} resource`;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update(id: number, updateResourceDto: UpdateResourceDto) {
-    return `This action updates a #${id} resource`;
+  async update(id: number, updateResourceDto: UpdateResourceDto) {
+    return await this.resourceRepository.update(id, updateResourceDto);
   }
 
   remove(id: number) {

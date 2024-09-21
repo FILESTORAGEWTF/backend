@@ -29,4 +29,7 @@ export class Resource {
 
   @Column({ type: "varchar" })
   type: ResourceType;
+
+  @Column({ type: "boolean", default: false })
+  shareable: boolean;
 }

@@ -33,13 +33,7 @@ export class ResourceController {
 
   @Get()
   findAll() {
-    console.log("get all ");
     return this.resourceService.findAll();
-  }
-
-  @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.resourceService.findOne(+id);
   }
 
   @Patch(":id")
@@ -47,6 +41,7 @@ export class ResourceController {
     @Param("id") id: string,
     @Body() updateResourceDto: UpdateResourceDto
   ) {
+    console.log(updateResourceDto);
     return this.resourceService.update(+id, updateResourceDto);
   }
 
