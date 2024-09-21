@@ -24,9 +24,6 @@ export class Resource {
   @Column({ type: "integer", nullable: true })
   parentId: number;
 
-  @Column({ type: "integer", nullable: true })
-  level: number;
-
   @Column({ type: "varchar", nullable: true })
   ownerId: string;
 

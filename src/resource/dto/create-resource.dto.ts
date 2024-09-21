@@ -14,10 +14,13 @@ export class CreateResourceDto {
   @IsString()
   ownerId: string;
 
-  @Type(() => Number)
-  @IsInt()
-  level: number;
-
   @IsEnum(ResourceType)
   type: ResourceType;
+
+  constructor(data: Readonly<CreateResourceDto>) {
+    this.name = data.name;
+    this.ownerId = data.ownerId;
+    this.parentId = data.parentId || null;
+    this.type = data.type;
+  }
 }

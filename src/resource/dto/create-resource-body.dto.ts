@@ -11,10 +11,6 @@ export class CreateResourceBodyDto {
   @IsInt()
   parentId?: number | null;
 
-  @Type(() => Number)
-  @IsInt()
-  level: number;
-
   @IsEnum(ResourceType)
   type: ResourceType;
 }
