@@ -1,4 +1,10 @@
-import { IsInt, IsString, IsOptional, IsEnum, IsBoolean } from "class-validator";
+import {
+  IsInt,
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsBoolean,
+} from "class-validator";
 import { Type } from "class-transformer";
 import { ResourceType } from "../resource.namespace";
 
