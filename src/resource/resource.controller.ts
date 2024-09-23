@@ -32,8 +32,23 @@ export class ResourceController {
   }
 
   @Get()
-  findAll() {
-    return this.resourceService.findAll();
+  @UseGuards(AuthGuard)
+  findAll(@RequestUserSession() session: any) {
+    return this.resourceService.findAllUserResources(session.uid);
+  }
+
+  @Get("/shared")
+  @UseGuards(AuthGuard)
+  findAllShared(@RequestUserSession() session: any) {
+    console.log('tyt==================> ')
+    return this.resourceService.findAllUserShearedResources(session.uid);
+  }
+
+  @Get("/shared/:parentId")
+  @UseGuards(AuthGuard)
+  findAllSharedByParentId(@Param("parentId") parentId: string) {
+    console.log('tyt==================> ',parentId)
+    return this.resourceService.findResourcesByParentId(+parentId);
   }
 
   @Patch(":id")
@@ -41,7 +56,6 @@ export class ResourceController {
     @Param("id") id: string,
     @Body() updateResourceDto: UpdateResourceDto
   ) {
-    console.log(updateResourceDto);
     return this.resourceService.update(+id, updateResourceDto);
   }
 

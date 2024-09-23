@@ -1,14 +1,19 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { PermissionService } from "./permission.service";
 import { PermissionController } from "./permission.controller";
-import { ResourceModule } from "src/resource/resource.module";
+import { ResourceModule } from "../resource/resource.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Permission } from "./entities/permission.entity";
-import { MailModule } from "src/mail/mail.module";
+import { MailModule } from "../mail/mail.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Permission]), ResourceModule, MailModule],
+  imports: [
+    TypeOrmModule.forFeature([Permission]),
+    forwardRef(() => ResourceModule),
+    MailModule,
+  ],
   controllers: [PermissionController],
   providers: [PermissionService],
+  exports: [PermissionService],
 })
 export class PermissionModule {}

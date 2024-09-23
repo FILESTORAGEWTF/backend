@@ -45,7 +45,11 @@ export class PermissionService {
     });
   }
 
-  findAll() {
-    return `This action returns all permission`;
+  findAllUserPermissions(userId: string) {
+    return this.permissionRepository.find({
+      where: {
+        userId,
+      },
+    });
   }
 }
