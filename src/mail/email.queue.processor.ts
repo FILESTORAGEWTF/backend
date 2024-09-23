@@ -11,10 +11,8 @@ export class MailProcessor extends WorkerHost {
     super();
   }
 
-  async process(
-    job: Job<PermissionDetailDto & { from: string }>
-  ): Promise<any> {
+  async process(job: Job<PermissionDetailDto>): Promise<any> {
     const { data } = job;
-    return this.emailService.sendInvite(data);
+    return this.emailService.sendNotifyPermission(data);
   }
 }

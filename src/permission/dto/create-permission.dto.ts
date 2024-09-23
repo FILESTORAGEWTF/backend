@@ -34,9 +34,13 @@ export class CreatePermissionDto {
   @IsEnum(PermissionType)
   type: PermissionType;
 
+  @IsString()
+  userEmail: string;
+
   constructor(data: Readonly<CreatePermissionDto>) {
     this.userId = data.userId;
     this.resourceId = data.resourceId;
     this.type = data.type;
+    this.userEmail = data.userEmail;
   }
 }

@@ -8,4 +8,8 @@ export class UserService {
   findAll() {
     return this.firebaseUserRepository.getAllUsers();
   }
+
+  findUserById(id: string) {
+    return this.firebaseUserRepository.getUserById(id);
+  }
 }

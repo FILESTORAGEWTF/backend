@@ -18,33 +18,29 @@ export class PermissionService {
     private permissionEmailQueue: Queue
   ) {}
 
-  async create(createPermissionsDto: CreatePermissionsDto, from: string) {
+  async create(createPermissionsDto: CreatePermissionsDto) {
     console.log(createPermissionsDto);
     const permissionsToSave = this.mapToDto(createPermissionsDto);
 
     const result = await this.permissionRepository.save(permissionsToSave);
     const permissionsToMailJobs = permissionsToSave.map((permission) => ({
       name: "sendPermissionEmail",
-      data: { ...permission, from },
+      data: permission,
     }));
 
-    const mailJobs = await this.permissionEmailQueue.add(
-      "sendPermissionEmail",
-      { ...permissionsToMailJobs[0] }
-    );
-
-    console.log("mailResult", mailJobs);
+    this.permissionEmailQueue.addBulk(permissionsToMailJobs);
 
     return result;
   }
 
   private mapToDto(createPermissionsDto: CreatePermissionsDto) {
     const { permissions, resourceId } = createPermissionsDto;
-    return permissions.map(({ userId, type }) => {
+    return permissions.map(({ userId, type, userEmail }) => {
       return new CreatePermissionDto({
         userId,
         type,
         resourceId,
+        userEmail,
       });
     });
   }
