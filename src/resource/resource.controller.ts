@@ -40,15 +40,16 @@ export class ResourceController {
   @Get("/shared")
   @UseGuards(AuthGuard)
   findAllShared(@RequestUserSession() session: any) {
-    console.log('tyt==================> ')
-    return this.resourceService.findAllUserShearedResources(session.uid);
+    return this.resourceService.findUserTopShearedResources(session.uid);
   }
 
   @Get("/shared/:parentId")
   @UseGuards(AuthGuard)
-  findAllSharedByParentId(@Param("parentId") parentId: string) {
-    console.log('tyt==================> ',parentId)
-    return this.resourceService.findResourcesByParentId(+parentId);
+  findAllSharedByParentId(
+    @Param("parentId") parentId: string,
+    @RequestUserSession() session: any
+  ) {
+    return this.resourceService.findResourcesByParentId(+parentId, session.uid);
   }
 
   @Patch(":id")

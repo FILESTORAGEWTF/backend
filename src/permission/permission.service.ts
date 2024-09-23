@@ -1,3 +1,4 @@
+import { Resource } from "./../resource/entities/resource.entity";
 import { Injectable } from "@nestjs/common";
 import {
   CreatePermissionDto,
@@ -51,5 +52,33 @@ export class PermissionService {
         userId,
       },
     });
+  }
+
+  findClosestParentPermission(
+    userPermissions: Permission[],
+    resources: Resource[],
+    resourceId: number
+  ) {
+
+    const currentResource = resources.find(
+      (resource) => resource.id === resourceId
+    );
+
+    if (!currentResource || currentResource.parentId === null) {
+      return null;
+    }
+
+    const parentPermission = userPermissions.find(
+      (permission) => permission.resourceId === currentResource.parentId
+    );
+
+    return (
+      parentPermission ||
+      this.findClosestParentPermission(
+        userPermissions,
+        resources,
+        currentResource.parentId
+      )
+    );
   }
 }

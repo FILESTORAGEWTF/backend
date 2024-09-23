@@ -4,7 +4,7 @@ import { CreateResourceDto } from "./dto/create-resource.dto";
 import { UpdateResourceDto } from "./dto/update-resource.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Resource } from "./entities/resource.entity";
-import { In, IsNull, Repository } from "typeorm";
+import { IsNull, Repository } from "typeorm";
 import { getDescendantResources } from "./lib/getDescendantsResources";
 
 @Injectable()
@@ -28,25 +28,61 @@ export class ResourceService {
     });
   }
 
-  async findAllUserShearedResources(userId: string) {
+  async findUserTopShearedResources(userId: string) {
+    const query = this.resourceRepository
+      .createQueryBuilder("resource")
+      .leftJoinAndSelect(
+        "permissions",
+        "permission",
+        "permission.resourceId = resource.id AND permission.userId = :userId",
+        { userId }
+      )
+      .where("resource.deletedAt IS NULL")
+      .andWhere("permission.userId = :userId", { userId })
+      .select([
+        "resource.id",
+        "resource.name",
+        "resource.storedFilename",
+        "resource.createdAt",
+        "resource.updatedAt",
+        "resource.deletedAt",
+        "resource.parentId",
+        "resource.ownerId",
+        "resource.type",
+        "resource.shareable",
+        "permission.type AS permissionType",
+      ]);
+
+    const result = await query.getRawMany();
+
+    return result;
+  }
+
+  async findResourcesByParentId(parentId: number, userId: string) {
     const userPermissions = await this.permissionService.findAllUserPermissions(
       userId
     );
-    return await this.resourceRepository.find({
-      where: {
-        deletedAt: IsNull(),
-        id: In(userPermissions.map((e) => e.resourceId)),
-      },
-    });
-  }
 
-  async findResourcesByParentId(parentId: number) {
-    return await this.resourceRepository.find({
+    const allResources = await this.resourceRepository.find({
       where: {
         deletedAt: IsNull(),
-        parentId,
       },
     });
+
+    const currentPermission =
+      userPermissions.find((perm) => perm.resourceId === parentId) ||
+      this.permissionService.findClosestParentPermission(
+        userPermissions,
+        allResources,
+        parentId
+      );
+
+    return allResources.reduce((acc, resource) => {
+      if (resource.parentId === parentId) {
+        acc.push({ ...resource, permissionType: currentPermission.type });
+      }
+      return acc;
+    }, []);
   }
 
   findOne(id: number) {
