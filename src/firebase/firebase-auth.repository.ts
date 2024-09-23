@@ -6,8 +6,7 @@ export class FirebaseUserRepository {
   constructor(private firebaseAdminService: FirebaseAdminService) {}
 
   async getUserById(id: string) {
-    const user = await this.firebaseAdminService.getAuth().getUser(id);
-    return user;
+    return await this.firebaseAdminService.getAuth().getUser(id);
   }
 
   async getAllUsers() {

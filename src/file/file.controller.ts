@@ -1,10 +1,8 @@
 import { ResourceService } from "./../resource/resource.service";
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   UseInterceptors,
@@ -12,7 +10,6 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { FileService } from "./file.service";
-import { UpdateFileDto } from "./dto/update-file.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import { generateFilename } from "./utils/generateFileName";
@@ -42,25 +39,26 @@ export class FileController {
       }),
     })
   )
-  uploadFile(
+  async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Body() body,
     @RequestUserSession() session: any
   ) {
     const { parentId, shareable } = JSON.parse(body.meta);
-    console.log("meta ====> ", parentId, shareable);
+    console.log(file.path);
     try {
-      const savedFileData = this.resourceService.create(
+      return await this.resourceService.create(
         new CreateResourceDto({
           parentId,
           ownerId: session.uid,
-          name: file.filename,
+          name: file.originalname,
+          storedFilename: file.filename,
           type: ResourceType.FILE,
           shareable,
         })
       );
-      return savedFileData;
     } catch (error) {
+      console.error(error);
       setImmediate(() => {
         unlink(file.path, (err) => {
           if (err)
@@ -68,21 +66,6 @@ export class FileController {
         });
       });
     }
-  }
-
-  @Get()
-  findAll() {
-    return this.fileService.findAll();
-  }
-
-  @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.fileService.findOne(+id);
-  }
-
-  @Patch(":id")
-  update(@Param("id") id: string, @Body() updateFileDto: UpdateFileDto) {
-    return this.fileService.update(+id, updateFileDto);
   }
 
   @Delete(":id")

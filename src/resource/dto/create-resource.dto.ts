@@ -12,6 +12,9 @@ export class CreateResourceDto {
   @IsString()
   name: string;
 
+  @IsString()
+  storedFilename: string;
+
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -32,5 +35,6 @@ export class CreateResourceDto {
     this.parentId = data.parentId || null;
     this.type = data.type;
     this.shareable = data.shareable;
+    this.storedFilename = data.storedFilename || null;
   }
 }

@@ -7,6 +7,10 @@ export class CreateResourceBodyDto {
   name: string;
 
   @IsOptional()
+  @IsString()
+  storedFilename: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   parentId?: number | null;

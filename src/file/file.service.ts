@@ -1,25 +1,41 @@
-import { Injectable } from "@nestjs/common";
-import { CreateFileDto } from "./dto/create-file.dto";
-import { UpdateFileDto } from "./dto/update-file.dto";
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
+import { createReadStream, existsSync, unlink } from "fs";
+import { join } from "path";
 
 @Injectable()
 export class FileService {
-  create(createFileDto: CreateFileDto) {
-    return "This action adds a new file";
+  downloadFile(filename: string) {
+    const filePath = join(__dirname, "..", "storage", filename); // Шлях до файлу
+
+    if (!existsSync(filePath)) {
+      throw new NotFoundException(`File ${filename} not found`);
+    }
+
+    return createReadStream(filePath);
   }
 
-  findAll() {
-    return `This action returns all file`;
-  }
+  async deleteFile(filename: string): Promise<void> {
+    const filePath = join(__dirname, "..", "storage", filename);
 
-  findOne(id: number) {
-    return `This action returns a #${id} file`;
-  }
+    if (!existsSync(filePath)) {
+      throw new NotFoundException(`File ${filename} not found`);
+    }
 
-  update(id: number, updateFileDto: UpdateFileDto) {
-    return `This action updates a #${id} file`;
+    try {
+      unlink(filePath, (err) => {
+        if (err) console.error(`error by deleting the file ${filePath}:`, err);
+      });
+      console.log(`File ${filename} deleted`);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Could not delete file: ${error.message}`
+      );
+    }
   }
-
   remove(id: number) {
     return `This action removes a #${id} file`;
   }

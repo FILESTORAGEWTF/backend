@@ -3,7 +3,8 @@ import { CreateResourceDto } from "./dto/create-resource.dto";
 import { UpdateResourceDto } from "./dto/update-resource.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Resource } from "./entities/resource.entity";
-import { Repository } from "typeorm";
+import { IsNull, Repository } from "typeorm";
+import { getDescendantResources } from "./lib/getDescendantsResources";
 
 @Injectable()
 export class ResourceService {
@@ -17,18 +18,37 @@ export class ResourceService {
   }
 
   async findAll() {
-    return await this.resourceRepository.find();
+    return await this.resourceRepository.find({
+      where: {
+        deletedAt: IsNull(),
+      },
+    });
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} resource`;
+    return this.resourceRepository.findOne({
+      where: {
+        id,
+      },
+    });
   }
 
   async update(id: number, updateResourceDto: UpdateResourceDto) {
     return await this.resourceRepository.update(id, updateResourceDto);
   }
 
-  remove(id: number) {
+  async remove(id: number) {
+    const allResources = await this.findAll();
+
+    const resourcesToDelete = getDescendantResources(allResources, id);
+
+    const updatedResources = resourcesToDelete.map((resource) => {
+      resource.deletedAt = Date.now();
+      return resource;
+    });
+
+    await this.resourceRepository.save(updatedResources);
+
     return `This action removes a #${id} resource`;
   }
 }
