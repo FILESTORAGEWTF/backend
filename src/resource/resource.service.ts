@@ -1,11 +1,10 @@
 import { PermissionService } from "./../permission/permission.service";
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateResourceDto } from "./dto/create-resource.dto";
 import { UpdateResourceDto } from "./dto/update-resource.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Resource } from "./entities/resource.entity";
 import { IsNull, Repository } from "typeorm";
-import { getDescendantResources } from "./lib/getDescendantsResources";
 
 @Injectable()
 export class ResourceService {
@@ -40,22 +39,21 @@ export class ResourceService {
       .where("resource.deletedAt IS NULL")
       .andWhere("permission.userId = :userId", { userId })
       .select([
-        "resource.id",
-        "resource.name",
-        "resource.storedFilename",
-        "resource.createdAt",
-        "resource.updatedAt",
-        "resource.deletedAt",
-        "resource.parentId",
-        "resource.ownerId",
-        "resource.type",
-        "resource.shareable",
+        "resource.id as id",
+        "resource.name as name",
+        "resource.storedFilename as storedFilename",
+        "resource.createdAt as createdAt",
+        "resource.updatedAt as updatedAt",
+        "resource.deletedAt as deletedAt",
+        "resource.parentId as parentId",
+        "resource.ownerId as ownerId",
+        "resource.type as type",
+        "resource.shareable as shareable",
         "permission.type AS permissionType",
-      ]);
+      ])
+      .groupBy("resource.id");
 
-    const result = await query.getRawMany();
-
-    return result;
+    return await query.getRawMany();
   }
 
   async findResourcesByParentId(parentId: number, userId: string) {
@@ -104,15 +102,37 @@ export class ResourceService {
       },
     });
 
-    const resourcesToDelete = getDescendantResources(allResources, id);
+    const resourceToDelete = allResources.find(
+      (resource) => resource.id === id
+    );
 
-    const updatedResources = resourcesToDelete.map((resource) => {
-      resource.deletedAt = Date.now();
-      return resource;
-    });
+    if (!resourceToDelete) {
+      throw new NotFoundException(`Resource with id ${id} not found`);
+    }
+
+    const resourcesToDelete = this.findDescendants(allResources, id);
+    const updatedResources = [...resourcesToDelete, resourceToDelete].map(
+      (resource) => {
+        resource.deletedAt = Date.now();
+        return resource;
+      }
+    );
 
     await this.resourceRepository.save(updatedResources);
 
     return `This action removes a #${id} resource`;
+  }
+
+  findDescendants(resources: Resource[], id: number) {
+    const descendants = [];
+
+    for (const resource of resources) {
+      if (resource.parentId === id) {
+        descendants.push(resource);
+        descendants.push(...this.findDescendants(resources, resource.id));
+      }
+    }
+
+    return descendants;
   }
 }

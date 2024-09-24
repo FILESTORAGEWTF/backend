@@ -7,7 +7,7 @@ export const getEmailHtmlTemplate = (receiver: string) => {
             <h2 style="color: #4CAF50;">VReal Soft Test Project</h2>
             <p style="font-size: 16px;"> Dear ${receiver}! You have been granted file access permissions!</p>
             <p style="font-size: 14px;">Check out the details below:</p>
-            <a href="https://localhost:3000/folder" style="
+            <a href="https://localhost:5173/shared" style="
                 display: inline-block;
                 padding: 12px 20px;
                 background-color: #4CAF50;

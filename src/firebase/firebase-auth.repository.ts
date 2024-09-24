@@ -9,8 +9,8 @@ export class FirebaseUserRepository {
     return await this.firebaseAdminService.getAuth().getUser(id);
   }
 
-  async getAllUsers() {
+  async getAllUsersExceptMe(id: string) {
     const users = await this.firebaseAdminService.getAuth().listUsers();
-    return users;
+    return users.users.filter((user) => user.uid !== id);
   }
 }
