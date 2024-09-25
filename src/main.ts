@@ -8,10 +8,8 @@ async function bootstrap() {
   await dataSource.initialize();
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors({
-    // exposedHeaders: [BidOneHeader.AuthToken, BidOneHeader.Date],
-    // origin: ["http://localhost:5173/"],
     exposedHeaders: ["Content-Disposition"],
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     credentials: true,
   });
   await app.listen(3000);
