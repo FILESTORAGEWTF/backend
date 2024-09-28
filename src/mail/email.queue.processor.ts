@@ -2,7 +2,7 @@ import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job } from "bullmq";
 import { Injectable } from "@nestjs/common";
 import { MailService } from "./mail.service";
-import { PermissionDetailDto } from "../permission/dto/create-permission.dto";
+import { PermissionDetailDto } from "../permission/dto/permission.dto";
 
 @Processor("permission-emails-sending")
 @Injectable()

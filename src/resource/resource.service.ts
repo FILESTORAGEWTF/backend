@@ -1,10 +1,9 @@
 import { PermissionService } from "./../permission/permission.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { CreateResourceDto } from "./dto/create-resource.dto";
-import { UpdateResourceDto } from "./dto/update-resource.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Resource } from "./entities/resource.entity";
 import { IsNull, Repository } from "typeorm";
+import { ResourceDto, UpdateResourceDto } from "./dto/resource.dto";
 
 @Injectable()
 export class ResourceService {
@@ -13,18 +12,21 @@ export class ResourceService {
     private readonly resourceRepository: Repository<Resource>,
     private permissionService: PermissionService
   ) {}
-  async create(createResourceDto: CreateResourceDto) {
+  async create(createResourceDto: ResourceDto) {
     const resource = this.resourceRepository.create(createResourceDto);
-    return await this.resourceRepository.save(resource);
+    await this.resourceRepository.save(resource);
+    return new ResourceDto(resource);
   }
 
   async findAllUserResources(ownerId: string) {
-    return await this.resourceRepository.find({
+    const resources = await this.resourceRepository.find({
       where: {
         deletedAt: IsNull(),
         ownerId,
       },
     });
+
+    return this.mapToDto(resources);
   }
 
   async findUserTopShearedResources(userId: string) {
@@ -53,7 +55,9 @@ export class ResourceService {
       ])
       .groupBy("resource.id");
 
-    return await query.getRawMany();
+    const resources = await query.getRawMany();
+
+    return this.mapToDto(resources);
   }
 
   async findResourcesByParentId(parentId: number, userId: string) {
@@ -81,18 +85,21 @@ export class ResourceService {
       }
       return acc;
     }, []);
+
+    return this.mapToDto(allResources);
   }
 
-  findOne(id: number) {
-    return this.resourceRepository.findOne({
+  async findOne(id: number) {
+    const resource = await this.resourceRepository.findOne({
       where: {
         id,
       },
     });
+    return new ResourceDto(resource);
   }
 
   async update(id: number, updateResourceDto: UpdateResourceDto) {
-    return await this.resourceRepository.update(id, updateResourceDto);
+    await this.resourceRepository.update(id, updateResourceDto);
   }
 
   async remove(id: number) {
@@ -134,5 +141,9 @@ export class ResourceService {
     }
 
     return descendants;
+  }
+
+  private mapToDto(resources: Resource[]) {
+    return resources.map((resource) => new ResourceDto(resource));
   }
 }

@@ -18,12 +18,21 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import { generateFilename } from "./utils/generateFileName";
 import { RequestUserSession } from "src/lib/decorators/request-user-session.decorator";
-import { CreateResourceDto } from "src/resource/dto/create-resource.dto";
+import { ResourceDto } from "src/resource/dto/resource.dto";
 import { createReadStream, unlink } from "fs";
 import { ResourceType } from "src/resource/resource.namespace";
 import { AuthGuard } from "src/lib/guards/auth/auth.guard";
 import { join } from "path";
+import {
+  ApiConsumes,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 
+@ApiTags("File")
 @Controller("file")
 export class FileController {
   constructor(
@@ -33,6 +42,12 @@ export class FileController {
 
   @Post("upload")
   @UseGuards(AuthGuard)
+  @ApiOperation({ summary: "Upload a file" })
+  @ApiConsumes("multipart/form-data")
+  @ApiOkResponse({
+    description: "Successfully created resource.",
+    type: ResourceDto,
+  })
   @UseInterceptors(
     FileInterceptor("file", {
       storage: diskStorage({
@@ -53,7 +68,7 @@ export class FileController {
     console.log(file.path);
     try {
       return await this.resourceService.create(
-        new CreateResourceDto({
+        new ResourceDto({
           parentId,
           ownerId: session.uid,
           name: file.originalname,
@@ -75,6 +90,8 @@ export class FileController {
 
   @Get("download/:id")
   @UseGuards(AuthGuard)
+  @ApiOperation({ summary: "Download a file" })
+  @ApiResponse({ status: 200, description: "File stream" })
   async downloadFile(@Param("id") id: string, @Res() res: Response) {
     const fileData = await this.resourceService.findOne(+id);
     if (!fileData) {
@@ -94,6 +111,12 @@ export class FileController {
   }
 
   @Delete(":id")
+  @ApiOperation({ summary: "Delete a file" })
+  @ApiOperation({ summary: "Delete a file" })
+  @ApiParam({ name: "id", type: "string", description: "File ID" })
+  @ApiResponse({ status: 200, description: "File deleted successfully" })
+  @ApiResponse({ status: 404, description: "File not found" })
+  @ApiParam({ name: "id", type: "string", description: "File ID" })
   remove(@Param("id") id: string) {
     return this.fileService.remove(+id);
   }

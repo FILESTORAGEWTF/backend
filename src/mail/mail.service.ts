@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import * as sendgrid from "@sendgrid/mail";
-import { PermissionDetailDto } from "src/permission/dto/create-permission.dto";
+import { PermissionDetailDto } from "src/permission/dto/permission.dto";
 import { UserService } from "src/user/user.service";
 import { getEmailHtmlTemplate } from "./lib/getEmailHtmlTemplate";
 

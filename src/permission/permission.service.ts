@@ -1,9 +1,6 @@
 import { Resource } from "./../resource/entities/resource.entity";
 import { Injectable } from "@nestjs/common";
-import {
-  CreatePermissionDto,
-  CreatePermissionsDto,
-} from "./dto/create-permission.dto";
+import { CreatePermissionsDto, PermissionDto } from "./dto/permission.dto";
 import { Permission } from "./entities/permission.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -20,10 +17,9 @@ export class PermissionService {
   ) {}
 
   async create(createPermissionsDto: CreatePermissionsDto) {
-    console.log(createPermissionsDto);
     const permissionsToSave = this.mapToDto(createPermissionsDto);
 
-    const result = await this.permissionRepository.save(permissionsToSave);
+    await this.permissionRepository.save(permissionsToSave);
     const permissionsToMailJobs = permissionsToSave.map((permission) => ({
       name: "sendPermissionEmail",
       data: permission,
@@ -31,13 +27,13 @@ export class PermissionService {
 
     this.permissionEmailQueue.addBulk(permissionsToMailJobs);
 
-    return result;
+    return permissionsToSave;
   }
 
   private mapToDto(createPermissionsDto: CreatePermissionsDto) {
     const { permissions, resourceId } = createPermissionsDto;
     return permissions.map(({ userId, type, userEmail }) => {
-      return new CreatePermissionDto({
+      return new PermissionDto({
         userId,
         type,
         resourceId,
@@ -59,7 +55,6 @@ export class PermissionService {
     resources: Resource[],
     resourceId: number
   ) {
-
     const currentResource = resources.find(
       (resource) => resource.id === resourceId
     );
