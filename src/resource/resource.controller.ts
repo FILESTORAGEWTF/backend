@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import { ResourceService } from "./resource.service";
 import {
-  CreateResourceDto,
+  CreateResourceBodyDto,
   ResourceDto,
   UpdateResourceDto,
 } from "./dto/resource.dto";
@@ -30,7 +30,7 @@ export class ResourceController {
     type: ResourceDto,
   })
   create(
-    @Body() createResourceDto: CreateResourceDto,
+    @Body() createResourceDto: CreateResourceBodyDto,
     //TODO add session type
     @RequestUserSession() session: any
   ) {

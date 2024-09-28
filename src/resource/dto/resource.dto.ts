@@ -8,8 +8,9 @@ import {
 import { Type } from "class-transformer";
 import { ResourceType } from "../resource.namespace";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { PermissionType } from "src/permission/permission.namespace";
 
-export class CreateResourceDto {
+export class CreateResourceBodyDto {
   @ApiProperty({ description: "Resource name" })
   @IsString()
   name: string;
@@ -43,19 +44,39 @@ export class CreateResourceDto {
   shareable?: boolean = false;
 }
 
-export class ResourceDto extends CreateResourceDto {
+export class CreateResourceDto extends CreateResourceBodyDto {
   @ApiProperty({ description: "Owner ID" })
   @IsString()
   ownerId: string;
+}
+
+export class ResourceDto extends CreateResourceDto {
+  @ApiProperty({ description: "id" })
+  @Type(() => Number)
+  @IsInt()
+  id: number;
 
   constructor(data: Readonly<ResourceDto>) {
     super();
+    this.id = data.id;
     this.name = data.name;
     this.ownerId = data.ownerId;
     this.parentId = data.parentId || null;
     this.type = data.type;
     this.shareable = data.shareable;
     this.storedFilename = data.storedFilename || null;
+  }
+}
+
+export class ResourceDtoWithPermissionType extends ResourceDto {
+  @ApiProperty({ description: "id" })
+  @ApiProperty({ enum: PermissionType, description: "Type of the permission" })
+  @IsEnum(PermissionType)
+  permissionType: PermissionType;
+
+  constructor(data: Readonly<ResourceDtoWithPermissionType>) {
+    super(data);
+    this.permissionType = data.permissionType;
   }
 }
 

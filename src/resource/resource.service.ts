@@ -3,7 +3,12 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Resource } from "./entities/resource.entity";
 import { IsNull, Repository } from "typeorm";
-import { ResourceDto, UpdateResourceDto } from "./dto/resource.dto";
+import {
+  UpdateResourceDto,
+  ResourceDtoWithPermissionType,
+  CreateResourceDto,
+  ResourceDto,
+} from "./dto/resource.dto";
 
 @Injectable()
 export class ResourceService {
@@ -12,10 +17,10 @@ export class ResourceService {
     private readonly resourceRepository: Repository<Resource>,
     private permissionService: PermissionService
   ) {}
-  async create(createResourceDto: ResourceDto) {
+  async create(createResourceDto: CreateResourceDto) {
     const resource = this.resourceRepository.create(createResourceDto);
-    await this.resourceRepository.save(resource);
-    return new ResourceDto(resource);
+    const savedResource = await this.resourceRepository.save(resource);
+    return new ResourceDto(savedResource);
   }
 
   async findAllUserResources(ownerId: string) {
@@ -26,10 +31,12 @@ export class ResourceService {
       },
     });
 
-    return this.mapToDto(resources);
+    return resources.map((resource) => new ResourceDto(resource));
   }
 
-  async findUserTopShearedResources(userId: string) {
+  async findUserTopShearedResources(
+    userId: string
+  ): Promise<ResourceDtoWithPermissionType[]> {
     const query = this.resourceRepository
       .createQueryBuilder("resource")
       .leftJoinAndSelect(
@@ -55,12 +62,16 @@ export class ResourceService {
       ])
       .groupBy("resource.id");
 
-    const resources = await query.getRawMany();
-
-    return this.mapToDto(resources);
+    const updatedResources = await await query.getRawMany();
+    return updatedResources.map(
+      (resource) => new ResourceDtoWithPermissionType(resource)
+    );
   }
 
-  async findResourcesByParentId(parentId: number, userId: string) {
+  async findResourcesByParentId(
+    parentId: number,
+    userId: string
+  ): Promise<ResourceDtoWithPermissionType[]> {
     const userPermissions = await this.permissionService.findAllUserPermissions(
       userId
     );
@@ -81,12 +92,15 @@ export class ResourceService {
 
     return allResources.reduce((acc, resource) => {
       if (resource.parentId === parentId) {
-        acc.push({ ...resource, permissionType: currentPermission.type });
+        acc.push(
+          new ResourceDtoWithPermissionType({
+            ...resource,
+            permissionType: currentPermission.type,
+          })
+        );
       }
       return acc;
     }, []);
-
-    return this.mapToDto(allResources);
   }
 
   async findOne(id: number) {
@@ -141,9 +155,5 @@ export class ResourceService {
     }
 
     return descendants;
-  }
-
-  private mapToDto(resources: Resource[]) {
-    return resources.map((resource) => new ResourceDto(resource));
   }
 }

@@ -65,18 +65,17 @@ export class FileController {
     @RequestUserSession() session: any
   ) {
     const { parentId, shareable } = JSON.parse(body.meta);
-    console.log(file.path);
     try {
-      return await this.resourceService.create(
-        new ResourceDto({
-          parentId,
-          ownerId: session.uid,
-          name: file.originalname,
-          storedFilename: file.filename,
-          type: ResourceType.FILE,
-          shareable,
-        })
-      );
+      const savedResource = await this.resourceService.create({
+        parentId,
+        ownerId: session.uid,
+        name: file.originalname,
+        storedFilename: file.filename,
+        type: ResourceType.FILE,
+        shareable,
+      });
+
+      return new ResourceDto(savedResource);
     } catch (error) {
       console.error(error);
       setImmediate(() => {
