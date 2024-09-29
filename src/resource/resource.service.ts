@@ -17,13 +17,13 @@ export class ResourceService {
     private readonly resourceRepository: Repository<Resource>,
     private permissionService: PermissionService
   ) {}
-  async create(createResourceDto: CreateResourceDto) {
+  async create(createResourceDto: CreateResourceDto): Promise<ResourceDto> {
     const resource = this.resourceRepository.create(createResourceDto);
     const savedResource = await this.resourceRepository.save(resource);
     return new ResourceDto(savedResource);
   }
 
-  async findAllUserResources(ownerId: string) {
+  async findAllUserResources(ownerId: string): Promise<ResourceDto[]> {
     const resources = await this.resourceRepository.find({
       where: {
         deletedAt: IsNull(),
@@ -62,7 +62,7 @@ export class ResourceService {
       ])
       .groupBy("resource.id");
 
-    const updatedResources = await await query.getRawMany();
+    const updatedResources = await query.getRawMany();
     return updatedResources.map(
       (resource) => new ResourceDtoWithPermissionType(resource)
     );
@@ -103,17 +103,16 @@ export class ResourceService {
     }, []);
   }
 
-  async findOne(id: number) {
-    const resource = await this.resourceRepository.findOne({
+  async findOne(id: number): Promise<Resource> {
+    return await this.resourceRepository.findOne({
       where: {
         id,
       },
     });
-    return new ResourceDto(resource);
   }
 
   async update(id: number, updateResourceDto: UpdateResourceDto) {
-    await this.resourceRepository.update(id, updateResourceDto);
+    return await this.resourceRepository.update(id, updateResourceDto);
   }
 
   async remove(id: number) {

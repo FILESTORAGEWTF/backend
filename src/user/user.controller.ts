@@ -13,7 +13,7 @@ export class UserController {
   @Get()
   @UseGuards(AuthGuard)
   @ApiOkResponse({
-    description: "Successfully returned users.",
+    status: 200,
     type: [ReturnUserDto],
   })
   async findAll(@RequestUserSession() session: any) {

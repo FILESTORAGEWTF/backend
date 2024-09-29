@@ -12,6 +12,7 @@ import { ResourceService } from "./resource.service";
 import {
   CreateResourceBodyDto,
   ResourceDto,
+  ResourceDtoWithPermissionType,
   UpdateResourceDto,
 } from "./dto/resource.dto";
 import { AuthGuard } from "src/lib/guards/auth/auth.guard";
@@ -43,6 +44,7 @@ export class ResourceController {
   @Get()
   @UseGuards(AuthGuard)
   @ApiOkResponse({
+    status: 200,
     type: [ResourceDto],
   })
   findAll(@RequestUserSession() session: any) {
@@ -52,7 +54,7 @@ export class ResourceController {
   @Get("/shared")
   @UseGuards(AuthGuard)
   @ApiOkResponse({
-    type: [ResourceDto],
+    type: [ResourceDtoWithPermissionType],
   })
   findAllShared(@RequestUserSession() session: any) {
     return this.resourceService.findUserTopShearedResources(session.uid);
@@ -61,7 +63,8 @@ export class ResourceController {
   @Get("/shared/:parentId")
   @UseGuards(AuthGuard)
   @ApiOkResponse({
-    type: [ResourceDto],
+    status: 200,
+    type: [ResourceDtoWithPermissionType],
   })
   findAllSharedByParentId(
     @Param("parentId") parentId: string,
@@ -72,8 +75,8 @@ export class ResourceController {
 
   @Patch(":id")
   @ApiOkResponse({
+    status: 204,
     description: "Successfully updated resource.",
-    type: UpdateResourceDto,
   })
   update(
     @Param("id") id: string,
@@ -83,6 +86,10 @@ export class ResourceController {
   }
 
   @Delete(":id")
+  @ApiOkResponse({
+    status: 204,
+    description: "Successfully deleted resource.",
+  })
   remove(@Param("id") id: string) {
     return this.resourceService.remove(+id);
   }

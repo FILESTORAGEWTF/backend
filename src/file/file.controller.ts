@@ -27,8 +27,6 @@ import {
   ApiConsumes,
   ApiOkResponse,
   ApiOperation,
-  ApiParam,
-  ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
 
@@ -45,6 +43,7 @@ export class FileController {
   @ApiOperation({ summary: "Upload a file" })
   @ApiConsumes("multipart/form-data")
   @ApiOkResponse({
+    status: 201,
     description: "Successfully created resource.",
     type: ResourceDto,
   })
@@ -90,7 +89,7 @@ export class FileController {
   @Get("download/:id")
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: "Download a file" })
-  @ApiResponse({ status: 200, description: "File stream" })
+  @ApiOkResponse({ status: 200, description: "File stream" })
   async downloadFile(@Param("id") id: string, @Res() res: Response) {
     const fileData = await this.resourceService.findOne(+id);
     if (!fileData) {
@@ -111,11 +110,7 @@ export class FileController {
 
   @Delete(":id")
   @ApiOperation({ summary: "Delete a file" })
-  @ApiOperation({ summary: "Delete a file" })
-  @ApiParam({ name: "id", type: "string", description: "File ID" })
-  @ApiResponse({ status: 200, description: "File deleted successfully" })
-  @ApiResponse({ status: 404, description: "File not found" })
-  @ApiParam({ name: "id", type: "string", description: "File ID" })
+  @ApiOkResponse({ status: 200, description: "File deleted successfully" })
   remove(@Param("id") id: string) {
     return this.fileService.remove(+id);
   }

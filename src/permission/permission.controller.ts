@@ -13,6 +13,7 @@ export class PermissionController {
   @ApiBody({ type: CreatePermissionsDto })
   @UseGuards(AuthGuard)
   @ApiOkResponse({
+    status: 201,
     description: "Successfully created permissions.",
     type: [PermissionDto],
   })

@@ -9,7 +9,7 @@ import { join } from "path";
 @Injectable()
 export class FileService {
   downloadFile(filename: string) {
-    const filePath = join(__dirname, "..", "storage", filename); // Шлях до файлу
+    const filePath = join(__dirname, "..", "storage", filename);
 
     if (!existsSync(filePath)) {
       throw new NotFoundException(`File ${filename} not found`);
