@@ -12,6 +12,6 @@ import { PermissionModule } from "../permission/permission.module";
   ],
   controllers: [ResourceController],
   providers: [ResourceService],
-  exports: [ResourceService],
+  exports: [ResourceService, TypeOrmModule.forFeature([Resource])],
 })
 export class ResourceModule {}

@@ -6,10 +6,12 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from "typeorm";
 import { PermissionType } from "../permission.namespace";
 
 @Entity("permissions")
+@Unique(["userId", "resourceId"])
 export class Permission {
   @PrimaryGeneratedColumn()
   id: number;

@@ -12,22 +12,74 @@ export class PermissionService {
   constructor(
     @InjectRepository(Permission)
     private readonly permissionRepository: Repository<Permission>,
+    @InjectRepository(Resource)
+    private readonly resourceRepository: Repository<Resource>,
     @InjectQueue("permission-emails-sending")
     private permissionEmailQueue: Queue
   ) {}
 
   async create(createPermissionsDto: CreatePermissionsDto) {
-    const permissionsToSave = this.mapToDto(createPermissionsDto);
+    const { resourceId, permissions: permissionsDetails } =
+      createPermissionsDto;
 
-    await this.permissionRepository.save(permissionsToSave);
-    const permissionsToMailJobs = permissionsToSave.map((permission) => ({
-      name: "sendPermissionEmail",
-      data: permission,
-    }));
+    const resources: Resource[] = await this.resourceRepository.query(
+      `
+      WITH RECURSIVE descendants AS (
+        SELECT id, name, parentId
+        FROM resource
+        WHERE id = ?
+  
+        UNION ALL
+  
+        SELECT resource.id, resource.name, resource.parentId
+        FROM resource
+        JOIN descendants ON resource.parentId = descendants.id
+      )
+      SELECT id, name FROM descendants;
+      `,
+      [resourceId]
+    );
+
+    const permissions = resources.flatMap((resource: Resource) =>
+      permissionsDetails.map((details) => ({
+        userId: details.userId,
+        resourceId: resource.id,
+        type: details.type,
+      }))
+    );
+
+    const placeholders = permissions.map(() => "(?, ?)").join(", ");
+    const deleteParams = permissions.flatMap((p) => [p.userId, p.resourceId]);
+
+    await this.permissionRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        await transactionalEntityManager.query(
+          `
+        DELETE FROM permissions
+        WHERE (userId, resourceId) IN (${placeholders});
+      `,
+          deleteParams
+        );
+
+        await transactionalEntityManager
+          .createQueryBuilder()
+          .insert()
+          .into("permissions")
+          .values(permissions)
+          .execute();
+      }
+    );
+
+    return;
+
+    const permissionsToMailJobs = this.mapToDto(createPermissionsDto).map(
+      (permission) => ({
+        name: "sendPermissionEmail",
+        data: permission,
+      })
+    );
 
     this.permissionEmailQueue.addBulk(permissionsToMailJobs);
-
-    return permissionsToSave;
   }
 
   private mapToDto(createPermissionsDto: CreatePermissionsDto) {
