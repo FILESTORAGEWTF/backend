@@ -69,7 +69,6 @@ export class ResourceDto extends CreateResourceDto {
 }
 
 export class ResourceDtoWithPermissionType extends ResourceDto {
-  @ApiProperty({ description: "id" })
   @ApiProperty({ enum: PermissionType, description: "Type of the permission" })
   @IsEnum(PermissionType)
   permissionType: PermissionType;

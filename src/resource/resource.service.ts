@@ -1,4 +1,3 @@
-import { PermissionService } from "./../permission/permission.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Resource } from "./entities/resource.entity";
@@ -14,8 +13,7 @@ import {
 export class ResourceService {
   constructor(
     @InjectRepository(Resource)
-    private readonly resourceRepository: Repository<Resource>,
-    private permissionService: PermissionService
+    private readonly resourceRepository: Repository<Resource>
   ) {}
   async create(createResourceDto: CreateResourceDto): Promise<ResourceDto> {
     const resource = this.resourceRepository.create(createResourceDto);
@@ -30,77 +28,32 @@ export class ResourceService {
         ownerId,
       },
     });
-
     return resources.map((resource) => new ResourceDto(resource));
   }
 
-  async findUserTopShearedResources(
+  async findAllUserShearedResources(
     userId: string
   ): Promise<ResourceDtoWithPermissionType[]> {
     const query = this.resourceRepository
       .createQueryBuilder("resource")
-      .leftJoinAndSelect(
+      .innerJoinAndSelect(
         "permissions",
         "permission",
         "permission.resourceId = resource.id AND permission.userId = :userId",
         { userId }
       )
       .where("resource.deletedAt IS NULL")
-      .andWhere("permission.userId = :userId", { userId })
-      .select([
-        "resource.id as id",
-        "resource.name as name",
-        "resource.storedFilename as storedFilename",
-        "resource.createdAt as createdAt",
-        "resource.updatedAt as updatedAt",
-        "resource.deletedAt as deletedAt",
-        "resource.parentId as parentId",
-        "resource.ownerId as ownerId",
-        "resource.type as type",
-        "resource.shareable as shareable",
-        "permission.type AS permissionType",
-      ])
-      .groupBy("resource.id");
+      .select(["resource.*", "permission.type AS permissionType"]);
 
     const updatedResources = await query.getRawMany();
+
     return updatedResources.map(
-      (resource) => new ResourceDtoWithPermissionType(resource)
+      (resource) =>
+        new ResourceDtoWithPermissionType({
+          ...resource,
+          shareable: Boolean(resource.shareable),
+        })
     );
-  }
-
-  async findResourcesByParentId(
-    parentId: number,
-    userId: string
-  ): Promise<ResourceDtoWithPermissionType[]> {
-    const userPermissions = await this.permissionService.findAllUserPermissions(
-      userId
-    );
-
-    const allResources = await this.resourceRepository.find({
-      where: {
-        deletedAt: IsNull(),
-      },
-    });
-
-    const currentPermission =
-      userPermissions.find((perm) => perm.resourceId === parentId) ||
-      this.permissionService.findClosestParentPermission(
-        userPermissions,
-        allResources,
-        parentId
-      );
-
-    return allResources.reduce((acc, resource) => {
-      if (resource.parentId === parentId) {
-        acc.push(
-          new ResourceDtoWithPermissionType({
-            ...resource,
-            permissionType: currentPermission.type,
-          })
-        );
-      }
-      return acc;
-    }, []);
   }
 
   async findOne(id: number): Promise<Resource> {

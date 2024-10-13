@@ -57,20 +57,7 @@ export class ResourceController {
     type: [ResourceDtoWithPermissionType],
   })
   findAllShared(@RequestUserSession() session: any) {
-    return this.resourceService.findUserTopShearedResources(session.uid);
-  }
-
-  @Get("/shared/:parentId")
-  @UseGuards(AuthGuard)
-  @ApiOkResponse({
-    status: 200,
-    type: [ResourceDtoWithPermissionType],
-  })
-  findAllSharedByParentId(
-    @Param("parentId") parentId: string,
-    @RequestUserSession() session: any
-  ) {
-    return this.resourceService.findResourcesByParentId(+parentId, session.uid);
+    return this.resourceService.findAllUserShearedResources(session.uid);
   }
 
   @Patch(":id")
